@@ -53,7 +53,7 @@ export class VuexPersistence<S> implements PersistOptions<S> {
     this.subscribed = false
     this.supportCircular = options.supportCircular || false
     if (this.supportCircular) {
-      CircularJSON = require('circular-json')
+      CircularJSON = require('flatted')
     }
 
     // @ts-ignore
