@@ -1,24 +1,25 @@
 /**
  * Created by championswimmer on 18/07/17.
  */
-import {merge} from './utils'
 import {Mutation, MutationPayload, Payload, Plugin, Store} from 'vuex'
 import {AsyncStorage} from './AsyncStorage'
 import { MockStorage } from './MockStorage'
 import {PersistOptions} from './PersistOptions'
 import SimplePromiseQueue from './SimplePromiseQueue'
+import {merge} from './utils'
 
 let CircularJSON = JSON
 
 /**
  * A class that implements the vuex persistence.
+ * @type S type of the 'state' inside the store (default: any)
  */
-export class VuexPersistence<S, P extends Payload> implements PersistOptions<S> {
+export class VuexPersistence<S> implements PersistOptions<S> {
   public asyncStorage: boolean
   public storage: Storage | AsyncStorage
   public restoreState: (key: string, storage?: AsyncStorage | Storage) => Promise<S> | S
   public saveState: (key: string, state: {}, storage?: AsyncStorage | Storage) => Promise<void> | void
-  public reducer: (state: S) => {}
+  public reducer: (state: S) => Partial<S>
   public key: string
   public filter: (mutation: Payload) => boolean
   public modules: string[]
@@ -45,7 +46,8 @@ export class VuexPersistence<S, P extends Payload> implements PersistOptions<S> 
    * Vuex plugin.
    * @param {PersistOptions} options
    */
-  public constructor(options: PersistOptions<S>) {
+  public constructor(options?: PersistOptions<S>) {
+    if (typeof options === 'undefined') options = {} as PersistOptions<S>
     this.key = ((options.key != null) ? options.key : 'vuex')
 
     this.subscribed = false
@@ -62,6 +64,7 @@ export class VuexPersistence<S, P extends Payload> implements PersistOptions<S> 
       if (process.env.MODULE_FORMAT !== 'umd') {
         this.storage = options.storage || (typeof window !== 'undefined' ? window.localStorage : new MockStorage!())
       } else {
+        // If UMD module, then we will only be having localStorage
         this.storage = options.storage || window.localStorage
       }
     }
@@ -83,8 +86,8 @@ export class VuexPersistence<S, P extends Payload> implements PersistOptions<S> 
             ? ((state: S) => state)
             : (
               (state: any) =>
-                (options.modules as string[]).reduce((a, i) =>
-                  merge(a, {[i]: state[i]} || {}), {/* start empty accumulator*/})
+                (options!.modules as string[]).reduce((a, i) =>
+                  merge(a, {[i]: state[i]}), {/* start empty accumulator*/})
             )
         )
     )
