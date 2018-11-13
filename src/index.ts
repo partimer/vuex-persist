@@ -177,6 +177,11 @@ export class VuexPersistence<S> implements PersistOptions<S> {
             }
           })
           this.subscribed = true
+                                                      
+          /**
+           * signal this plugin has restored its state
+           */
+          store._vm.$root.$emit(this.key+'-ready')
         })
       }
     } else {
@@ -243,6 +248,11 @@ export class VuexPersistence<S> implements PersistOptions<S> {
         })
 
         this.subscribed = true
+        
+        /**
+         * signal this plugin has restored its state
+         */
+        store._vm.$root.$emit(this.key+'-ready')
       }
     }
   }
